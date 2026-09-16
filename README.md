@@ -2,6 +2,7 @@
 
 [![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-d97757)](https://claude.com/claude-code)
 [![Workflow guide](https://img.shields.io/badge/docs-Claude%20workflow-555)](docs/CLAUDE_WORKFLOW.md)
+[![Pitfalls](https://img.shields.io/badge/docs-pitfalls-c0392b)](docs/PITFALLS.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 **How to enable your Claude Code to catch silently-released seats on sold-out Ticketmaster events, and notify you to go buy the ticket**
@@ -120,6 +121,11 @@ EVENT_ID=1A00612F1B0C4B5E npm run watch
 ```
 
 A Chromium window opens and stays open. That is not a bug — see below.
+
+> **Read [docs/PITFALLS.md](docs/PITFALLS.md) before you rely on this
+> unattended.** Every failure in it shares one shape: the monitor looks fine and
+> is not actually watching. That is indistinguishable from "no tickets yet" until
+> you go and check.
 
 > **Prefer to have Claude set this up for you?**
 > [docs/SETUP_WITH_CLAUDE.md](docs/SETUP_WITH_CLAUDE.md) has a copy-paste prompt
