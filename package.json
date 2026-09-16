@@ -1,0 +1,18 @@
+{
+  "name": "ticket-drop-watcher",
+  "version": "1.0.0",
+  "description": "Catches silently-released seats on sold-out Ticketmaster events and alerts a human.",
+  "main": "src/tm-watch.js",
+  "scripts": {
+    "watch": "node src/tm-watch.js",
+    "test-alerts": "node src/tm-watch.js --test",
+    "test": "cd src && node test_alert.js"
+  },
+  "keywords": ["ticketmaster", "playwright", "monitoring", "alerts", "pm2"],
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "nodemailer": "^10.0.10",
+    "playwright": "^1.63.0"
+  }
+}

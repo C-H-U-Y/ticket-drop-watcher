@@ -1,0 +1,10 @@
+node_modules/
+# Chromium profile: holds real Ticketmaster session cookies. Never commit.
+.tm-watch-profile/
+# Local secrets. The Gmail app password lives OUTSIDE the repo by design
+# (~/.tm-watch-smtp) but ignore these anyway in case anyone moves them in.
+.tm-watch-smtp
+*.env
+.env*
+ecosystem.config.js
+npm-debug.log*
