@@ -48,13 +48,16 @@ all of them.
 
 ## Proof it works
 
-![Ticketmaster checkout showing one Adult ticket secured, seat details redacted](docs/proof.png)
+<p align="center">
+  <img src="docs/proof.png" width="300"
+       alt="Ticketmaster checkout showing one Adult ticket secured for $226.95, seat details redacted">
+</p>
 
 Checkout at 10:42, two days after the event sold out. One seat, bought by hand,
 off an alert from this monitor — during the `[10:38:09] → [10:42:23]` window in
 the table above.
 
-*(Seat identifiers blurred.)* 
+*(Seat identifiers redacted.)* 
 
 ---
 
