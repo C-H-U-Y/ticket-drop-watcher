@@ -1,7 +1,19 @@
 # ticket-drop-watcher
 
+[![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-d97757)](https://claude.com/claude-code)
+[![Workflow guide](https://img.shields.io/badge/docs-Claude%20workflow-555)](docs/CLAUDE_WORKFLOW.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 **Catches silently-released seats on sold-out Ticketmaster events, and tells a
 human to go buy one.**
+
+> **Every line of code here was written by [Claude Code](https://claude.com/claude-code)**,
+> directed by a human over about two days. It found a real ticket.
+>
+> The monitor is the artefact. The **method** is the reusable part, and it is
+> written up in full: **[docs/CLAUDE_WORKFLOW.md](docs/CLAUDE_WORKFLOW.md)** —
+> the rules, the prompts, and the mistakes, so you can point your own Claude at a
+> comparable problem and get comparable behaviour.
 
 Sold-out events are rarely sold out for good. Seats come back constantly — held
 allocations released, abandoned carts timing out, payments failing. They reappear
@@ -125,10 +137,11 @@ EVENT_ID=1A00612F1B0C4B5E npm run watch
 
 A Chromium window opens and stays open. That is not a bug — see below.
 
-> **Prefer to have this set up for you?** This repo was built with Claude Code,
-> and [docs/SETUP_WITH_CLAUDE.md](docs/SETUP_WITH_CLAUDE.md) has a copy-paste
-> prompt that does the whole install, wires up email, and verifies each failure
-> mode against real output rather than assuming.
+> **Prefer to have Claude set this up for you?**
+> [docs/SETUP_WITH_CLAUDE.md](docs/SETUP_WITH_CLAUDE.md) has a copy-paste prompt
+> that does the whole install, wires up email, and verifies each failure mode
+> against real output rather than assuming. Clone the repo, run `claude` inside
+> it, paste the prompt.
 
 ### Non-Australian events
 
@@ -218,6 +231,9 @@ A Claude-side watcher dies with the session. The monitor does not — under pm2 
 beeps, toast, browser tab and email keep running whether or not anyone is
 watching the terminal.
 
+More prompts like this one, and the reasoning behind them, in
+[docs/CLAUDE_WORKFLOW.md](docs/CLAUDE_WORKFLOW.md).
+
 ---
 
 ## Things that are not optional
@@ -259,6 +275,31 @@ roughly **30 minutes** — the page reload is what refreshes bot clearance, and
 60s is a sensible floor. Below it you gain little and start looking impolite.
 
 ---
+
+## Built with Claude — and how
+
+This project was not "AI-assisted" in the sense of autocomplete. A human set the
+objective and made every judgement call with real-world consequences; Claude Code
+wrote all the code, ran the experiments, and kept the records.
+
+What made that work was not the model. It was five rules:
+
+1. **Never mark something done without stating the evidence** — a timestamped log
+   line, a test result, a reconciled count. Not "should work".
+2. **Record theories that turned out to be wrong**, so they are not rediscovered.
+   Two are preserved in [Engineering notes](#engineering-notes) below.
+3. **Memory files written at the moment of discovery**, pruned so every line
+   earns its place in the next session's context.
+4. **A tracker with an explicit "shelved" section** — decisions deliberately
+   declined, marked *do not re-raise*.
+5. **Watchers detect transitions, never literal log text**, because silence is
+   not success.
+
+Rule 1 is why the crash-recovery path was tested by *actually killing the
+browser* rather than by reading the code and declaring it fixed.
+
+**The full method, the reusable prompts, and the near-miss that nearly published
+private data: [docs/CLAUDE_WORKFLOW.md](docs/CLAUDE_WORKFLOW.md).**
 
 ## Engineering notes
 

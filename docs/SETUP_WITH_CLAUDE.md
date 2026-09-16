@@ -1,7 +1,11 @@
 # Setting it up with Claude Code
 
-This repo was built with [Claude Code](https://claude.com/claude-code), and the
-fastest way to point it at *your* event is to let Claude do the wiring.
+Every line of this repo was written by [Claude Code](https://claude.com/claude-code),
+and the fastest way to point it at *your* event is to let Claude do the wiring.
+
+> This page is the **install**. For the workflow that produced the repo — the
+> rules, the reusable prompts, and the mistakes worth avoiding — see
+> [CLAUDE_WORKFLOW.md](CLAUDE_WORKFLOW.md).
 
 Clone the repo, `cd` into it, run `claude`, and paste the prompt below.
 
@@ -78,3 +82,10 @@ regardless of whether anyone is watching the terminal.
 
 Everything above is just the README steps done carefully. See
 **Quick start** in [../README.md](../README.md).
+
+## Going further
+
+[CLAUDE_WORKFLOW.md](CLAUDE_WORKFLOW.md) generalises this beyond ticket
+monitoring: how to get an assistant to falsify its own theories, prove fixes
+against real output, keep memory that survives a context roll, and audit every
+surface before anything goes public.

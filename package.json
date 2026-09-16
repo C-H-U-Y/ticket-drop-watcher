@@ -8,7 +8,8 @@
     "test-alerts": "node src/tm-watch.js --test",
     "test": "cd src && node test_alert.js"
   },
-  "keywords": ["ticketmaster", "playwright", "monitoring", "alerts", "pm2"],
+  "keywords": ["ticketmaster", "playwright", "monitoring", "alerts", "pm2", "claude", "claude-code", "ai-assisted"],
+  "author": "Written by Claude Code (https://claude.com/claude-code), directed by a human",
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
