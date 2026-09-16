@@ -201,15 +201,26 @@ for a watcher that reports **transitions**, not states:
 Set up a persistent watcher on the tm-watch pm2 log. Report only TRANSITIONS:
 seats opening, a window closing, going blind on 403s, the log going stale, and
 the process dying. Match on the p= values, not on literal log text.
+
+Name the watcher so its name is not mistaken for an alert — the name is
+repeated on every notification. Word the events by severity: shout the one I
+must act on, keep routine self-healing ones lowercase, and prefix real faults
+with PROBLEM.
 ```
 
-Both of those constraints were learned the hard way:
+Every one of those constraints was learned by getting it wrong:
 
 - A watcher keyed on the literal string `r=0` stopped detecting anything the
   moment a change made it print `r=skip`. It failed **silently**, which is the
   worst way for a watchdog to fail.
 - Alerting only on *availability* makes a window **closing** invisible, so you
   never learn how long you actually had.
+- The watcher was first named *"tm-watch state changes (seats open/close, blind,
+  stale, process down)"*. That name is printed as a header above **every**
+  notification, so the phrase "seats open" appeared hourly on routine 403s. It
+  was read as an alert. A watcher's name is part of its output.
+- Routine 403s and real availability were both reported in capitals, which made
+  them look equally urgent when only one needed a human.
 
 A Claude-side watcher dies with the session. The monitor does not — under pm2 the
 beeps, toast, browser tab and email keep running whether or not anyone is

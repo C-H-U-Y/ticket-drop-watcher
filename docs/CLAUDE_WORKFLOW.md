@@ -95,7 +95,22 @@ For anything long-running. Both halves were learned by getting them wrong:
 Report only TRANSITIONS: opening, closing, going blind, going stale, dying.
 Match on parsed values, not on literal log strings. Silence is not success —
 if the process died right now, would this watcher say anything?
+
+Name it so the name cannot be mistaken for an alert: the name is repeated on
+every notification. Word events by severity — shout what I must act on, keep
+routine self-healing events lowercase, prefix real faults with PROBLEM.
 ```
+
+A third failure, found only after a week of live use: the watcher had been named
+*"state changes (seats open/close, blind, stale, process down)"*, and that name
+is printed above **every** notification. So the words "seats open" arrived hourly
+alongside routine, self-healing errors — and were read as an alert. Worse, the
+routine event and the real one were both in capitals, so they looked equally
+urgent.
+
+**A watcher's name and its tone are part of its output.** A watchdog that cries
+wolf in its own title trains you to ignore it, which is the same failure as not
+firing at all — just slower.
 
 ## Prompts you can reuse
 
