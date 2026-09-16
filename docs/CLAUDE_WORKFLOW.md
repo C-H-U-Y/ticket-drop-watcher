@@ -112,6 +112,29 @@ urgent.
 wolf in its own title trains you to ignore it, which is the same failure as not
 firing at all — just slower.
 
+### 6. A watcher's events cost a full context each — filter at the source
+
+Every notification a background watcher sends arrives as a new turn, which
+re-sends the entire conversation to the model. Caching softens it; it does not
+make it free, and the context grows all session.
+
+A watcher reporting routine, self-healing errors fired roughly **48 times a day**
+on this project — for events that never needed a human. The instinct is to reply
+tersely. That saves nothing: the cost is paid when the event **arrives**, not
+when you answer it.
+
+```text
+Report ONLY what needs a human. Say nothing for errors that self-heal within
+N minutes — surface one only if it OUTLASTS the remedy, which means the remedy
+has failed. Silence for routine, noise only for real.
+```
+
+The same reasoning applies to long sessions generally: when a session has done
+its job and is now just holding state, **write a handover and start fresh**
+rather than paying to re-ingest the history on every event. That handover is a
+deliverable — situation, the single objective, the constraints with their
+reasons, and what NOT to re-litigate.
+
 ## Prompts you can reuse
 
 **Starting an investigation:**
