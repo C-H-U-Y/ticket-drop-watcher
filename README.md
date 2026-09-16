@@ -4,24 +4,18 @@
 [![Workflow guide](https://img.shields.io/badge/docs-Claude%20workflow-555)](docs/CLAUDE_WORKFLOW.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**Catches silently-released seats on sold-out Ticketmaster events, and tells a
-human to go buy one.**
+**How to enable your Claude Code to catch silently-released seats on sold-out Ticketmaster events, and notify you to go buy the ticket**
 
-> **Every line of code here was written by [Claude Code](https://claude.com/claude-code)**,
-> directed by a human over about two days. It found a real ticket.
+> **Artifacts created by [Claude Code](https://claude.com/claude-code) with Huyber's supervision**,
 >
 > The monitor is the artefact. The **method** is the reusable part, and it is
-> written up in full: **[docs/CLAUDE_WORKFLOW.md](docs/CLAUDE_WORKFLOW.md)** —
-> the rules, the prompts, and the mistakes, so you can point your own Claude at a
-> comparable problem and get comparable behaviour.
+> written up in full: **[docs/CLAUDE_WORKFLOW.md](docs/CLAUDE_WORKFLOW.md)**
 
-Sold-out events are rarely sold out for good. Seats come back constantly — held
-allocations released, abandoned carts timing out, payments failing. They reappear
-in the **normal buy flow**, with no announcement, no waitlist, and no "notify me".
-If you are not looking at the page in that exact three-minute window, you never
-knew it happened.
+Ticketmaster's sold-out events that don't have a re-sale avenue do not remain sold out for good. Seats come back constantly - Tickets refunded, held
+allocations released, abandoned carts timing out, payments failing. They reappear in the **normal buy flow**, with no announcement, no waitlist, and
+no "notify me". If you are not looking at the page in that exact three-minute window, you never knew it happened.
 
-This watches for you.
+This repo makes Claude watch for you.
 
 ---
 
@@ -29,16 +23,6 @@ This watches for you.
 
 **Sydney Swans v Fremantle Dockers — AFL Preliminary Final, SCG, Fri 18 Sep 2026.**
 General sale sold out on Monday 14 Sep at 3:00pm.
-
-The interesting part is what the data showed once the monitor was running.
-Everyone assumes returned tickets come back through some fan-to-fan resale page.
-They don't — or at least, they didn't here. Ticketmaster's `resaleEnabled` flag
-read **`false` on every single poll across three days**. Every seat that appeared
-came back as ordinary **primary inventory**, through the same buy button as
-general sale, silently.
-
-That is precisely *why* polling is the only approach that works. There is nothing
-to subscribe to.
 
 ### What that looks like in practice
 
@@ -70,10 +54,7 @@ Checkout at 10:42, two days after the event sold out. One seat, bought by hand,
 off an alert from this monitor — during the `[10:38:09] → [10:42:23]` window in
 the table above.
 
-*(Seat identifiers blurred.)* That seat is the one the monitor had reported four
-minutes earlier — and it is the source of the most interesting bug in this repo,
-because the monitor reported it as a **$66 junior ticket**. See
-[Engineering notes](#engineering-notes).
+*(Seat identifiers blurred.)* 
 
 ---
 
