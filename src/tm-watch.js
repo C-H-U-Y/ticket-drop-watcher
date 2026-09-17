@@ -29,27 +29,40 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
+const { parseArgs, hello, start, pulse, Inactive, Rejected } = require('./control');
 
 // ----------------------------- config ---------------------------------------
-const EVENT_ID = process.env.EVENT_ID || '';
-if (!EVENT_ID) {
+// Two ways to run.
+//   Legacy:  EVENT_ID=<id> node tm-watch.js          everything from env vars
+//   Managed: node tm-watch.js --monitor <id> --token <token> [--api <origin>]
+//            the Seat watch dashboard holds the config (event, quantities,
+//            poll interval, ntfy topic) and this runner fetches it, then
+//            reports every poll cycle back so the dashboard shows Live,
+//            Silent, windows and alerts. See README "Run it from the Seat
+//            watch dashboard".
+const CTL     = parseArgs(process.argv);
+const MANAGED = Boolean(CTL.monitor && CTL.token);
+
+let EVENT_ID = process.env.EVENT_ID || '';
+if (!EVENT_ID && !MANAGED) {
   console.error('Set EVENT_ID to the Ticketmaster event id (the hex string in the');
   console.error('event page URL), e.g.  EVENT_ID=1A00612F1B0C4B5E node tm-watch.js');
+  console.error('Or run a monitor from the dashboard:  node tm-watch.js --monitor <id> --token <token>');
   process.exit(1);
 }
-const EVENT_URL =
+let EVENT_URL =
   (process.env.EVENT_BASE_URL || 'https://www.ticketmaster.com.au/event/') + EVENT_ID;
 
-const QTYS           = (process.env.QTYS || '1,2,3').split(',').map(Number);
-const POLL_MS        = Number(process.env.POLL_MS || 15000); // base interval (~15s)
+let QTYS             = (process.env.QTYS || '1,2,3').split(',').map(Number);
+let POLL_MS          = Number(process.env.POLL_MS || 15000); // base interval (~15s)
 const JITTER_MS      = 6000;    // random extra, so the pattern isn't robotic
 // Full page reload every N polls. This is what refreshes Ticketmaster's bot
 // clearance, so it must be measured in MINUTES, not polls: at the original
 // POLL_MS=15000 it meant 7.5 min, but at POLL_MS=180000 the same 30 becomes
 // NINETY minutes, which is far past the point where the API starts 403ing.
 // Keep RELOAD_EVERY * POLL_MS at roughly 30 minutes.
-const RELOAD_EVERY   = Number(process.env.RELOAD_EVERY || 30);
-const HEADLESS       = process.env.HEADLESS !== 'false'; // HEADLESS=false to watch it
+let RELOAD_EVERY     = Number(process.env.RELOAD_EVERY || 30);
+let HEADLESS         = process.env.HEADLESS !== 'false'; // HEADLESS=false to watch it
 const OPEN_ON_HIT    = process.env.OPEN_ON_HIT !== 'false';
 const PROFILE_DIR    = path.join(os.homedir(), '.tm-watch-profile');
 
@@ -59,7 +72,24 @@ const PROFILE_DIR    = path.join(os.homedir(), '.tm-watch-profile');
 // topic can read it and post to it, so generate a random one and keep it
 // private - never commit it. See README.
 // Then run `node tm-watch.js --test` to confirm the push lands on your phone.
-const NTFY_TOPIC     = process.env.NTFY_TOPIC || ''; // unset = phone push disabled
+let NTFY_TOPIC       = process.env.NTFY_TOPIC || ''; // unset = phone push disabled
+
+// Managed mode: the dashboard's config replaces the env vars above. Called at
+// startup and again whenever the monitor is reactivated, so a poll interval
+// changed on the dashboard takes effect without restarting the runner.
+function applyConfig(cfg) {
+  EVENT_ID     = String(cfg.eventId || EVENT_ID);
+  EVENT_URL    = String(cfg.url || ((process.env.EVENT_BASE_URL || 'https://www.ticketmaster.com.au/event/') + EVENT_ID));
+  QTYS         = Array.isArray(cfg.qtys) && cfg.qtys.length ? cfg.qtys.map(Number) : QTYS;
+  POLL_MS      = Number(cfg.pollMs) > 0 ? Number(cfg.pollMs) : POLL_MS;
+  // Reload x poll stays at about 30 minutes, whatever the poll interval is.
+  RELOAD_EVERY = Math.min(60, Math.max(3, Math.round(1_800_000 / POLL_MS)));
+  NTFY_TOPIC   = process.env.NTFY_TOPIC || cfg.ntfyTopic || '';
+  // Visible by default. Headless gets served a challenge page and never
+  // recovers (README "Things that are not optional"). HEADLESS=true to override.
+  HEADLESS     = process.env.HEADLESS === 'true';
+  console.log(`[${new Date().toLocaleTimeString('en-AU', { hour12: false })}] config from dashboard: event ${EVENT_ID}, qty ${QTYS.join(',')}, poll ${Math.round(POLL_MS / 1000)}s, reload every ${RELOAD_EVERY} polls, ntfy ${NTFY_TOPIC ? 'on' : 'off'}, headless ${HEADLESS}`);
+}
 
 // --- email alerts, via Gmail SMTP -------------------------------------------
 // NOT via ntfy: ntfy.sh charges for email (`40053 anonymous email sending is
@@ -453,6 +483,62 @@ function describe(res) {
     process.exit(0);
   }
 
+  // Managed mode: fetch the config from the dashboard before anything else.
+  // `deactivated` starts true when the owner has already switched the monitor
+  // off, so no browser is launched and the loop below goes straight to idling.
+  let deactivated = false;
+  if (MANAGED) {
+    log(`Managed by ${CTL.api}/watch/${CTL.monitor}`);
+    for (;;) {
+      try {
+        const r = await hello(CTL);
+        applyConfig(r.config || {});
+        start(CTL, Math.round(POLL_MS / 1000)).catch(() => {});
+        break;
+      } catch (e) {
+        if (e instanceof Rejected) {
+          log('Bad monitor id or token. Check the command on the dashboard.');
+          process.exit(1);
+        }
+        if (e instanceof Inactive) {
+          log('Monitor is deactivated on the dashboard. Idling until it is reactivated.');
+          deactivated = true;
+          break;
+        }
+        // Offline laptop, DNS not up yet, Worker cold. Keep trying.
+        log('control plane unreachable:', e.message, '- retrying hello in 60s');
+        await sleep(60000);
+      }
+    }
+  }
+
+  // Report one poll cycle to the dashboard. Fire and forget: a slow or failed
+  // post must never delay the next check. Network failures are logged once per
+  // streak, not once per poll, so a long outage does not drown the log.
+  let ctlDown = false;
+  function report(res) {
+    if (!MANAGED) return;
+    const n = (r) => (r && Array.isArray(r.picks) ? r.picks.length : null);
+    const q = {};
+    for (const [qty, r] of Object.entries(res.results)) {
+      q[qty] = { p: n(r.primary), r: r.resale && r.resale.skipped ? null : n(r.resale) };
+    }
+    const isHit = hit(res);
+    const seats = isHit
+      ? describe(res).split('\n').filter((l) => /^(PRIMARY|RESALE)/.test(l))
+      : [];
+    pulse(CTL, { q, resaleEnabled: res.resaleEnabled, hit: isHit, seats })
+      .then(() => { if (ctlDown) { ctlDown = false; log('control plane back'); } })
+      .catch((e) => {
+        if (e instanceof Inactive) { deactivated = true; return; }
+        if (e instanceof Rejected) {
+          log('Dashboard rejected this runner: bad monitor id or token. Stopping.');
+          process.exit(1);
+        }
+        if (!ctlDown) { ctlDown = true; log('control plane unreachable, still polling:', e.message); }
+      });
+  }
+
   log(`Watching ${EVENT_ID} for qty ${QTYS.join(' and ')}. Poll ~${Math.round(POLL_MS / 1000)}s. Ctrl+C to stop.`);
   if (NTFY_TOPIC) log(`Phone push -> ntfy.sh topic "${NTFY_TOPIC}"`);
   log(`Email: ${mailerStatus}`);
@@ -478,7 +564,9 @@ function describe(res) {
     await page.goto(EVENT_URL, { waitUntil: 'domcontentloaded', timeout: 90000 });
     await page.waitForTimeout(8000);
   }
-  await launch();
+  // A monitor that is already deactivated gets no browser until it is switched
+  // back on; the idle block at the top of the loop launches it then.
+  if (!deactivated) await launch();
 
   // Chromium dying is NOT the same failure as a bad page, and the old recovery
   // could not tell them apart: it ran page.goto() on an already-dead page, the
@@ -499,6 +587,34 @@ function describe(res) {
   let i = 0, fails = 0, lastLog = '', opened = false, resaleKnownOff = false;
   let forceReload = false, lastForcedReload = -99, dumpedPick = false;
   for (;;) {
+    // Managed mode: the owner switched the monitor off on the dashboard. Close
+    // the browser (no more requests to Ticketmaster) and ask every five minutes
+    // whether it is back on. pm2 keeps the process alive throughout, so there is
+    // no restart loop and no relaunch hammering the event page.
+    if (deactivated) {
+      log('Monitor deactivated on the dashboard. Idling. Reactivate it to resume.');
+      try { await ctx.close(); } catch {}
+      for (;;) {
+        await sleep(5 * 60_000);
+        try {
+          const r = await hello(CTL);
+          applyConfig(r.config || {});
+          await launch();
+          start(CTL, Math.round(POLL_MS / 1000)).catch(() => {});
+          deactivated = false;
+          log('Reactivated. Resuming.');
+          break;
+        } catch (e) {
+          if (e instanceof Rejected) {
+            log('Dashboard rejected this runner: bad monitor id or token. Stopping.');
+            process.exit(1);
+          }
+          // Inactive: still switched off. Anything else: offline, or the browser
+          // failed to launch. Keep idling and try again in five minutes.
+          if (!(e instanceof Inactive)) log('still idling:', e.message);
+        }
+      }
+    }
     i++;
     try {
       if (forceReload || i % RELOAD_EVERY === 0) {
@@ -509,6 +625,7 @@ function describe(res) {
       }
       const res = await checkOnce(page, QTYS, !resaleKnownOff);
       fails = 0;
+      report(res);
       // Follow the page flag. Only a definite `false` turns resale querying off;
       // a null (page not fully parsed, e.g. a challenge) leaves it as-is rather
       // than silently disabling a market on bad data.

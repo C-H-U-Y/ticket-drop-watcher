@@ -139,6 +139,29 @@ Set `EVENT_BASE_URL`, e.g. `https://www.ticketmaster.com/event/`. The
 `/api/quickpicks/` endpoint is the same shape across Ticketmaster regions, but
 only the AU site has been tested.
 
+## Run it from the Seat watch dashboard
+
+The env vars above are one way to configure a run. The other is to create the
+monitor at <https://boilerplate.archie-huybers.workers.dev/watch>, which holds
+the event, quantities, poll interval and ntfy topic for you, and copy the
+command it shows:
+
+```bash
+node src/tm-watch.js --monitor <id> --token <token> --api https://boilerplate.archie-huybers.workers.dev
+```
+
+The runner fetches its config from the dashboard, then reports every poll
+cycle back. The dashboard reads Live within one poll, Silent five minutes after
+the last pulse (laptop asleep, browser dead), and records each window of
+availability and each alert. Deactivating the monitor on the dashboard makes
+the runner close its browser and idle within one poll; reactivating brings it
+back within five minutes. Changing the poll interval on the dashboard takes
+effect the next time the runner is reactivated.
+
+Nothing about where the polling happens changes: it is still your own machine,
+your own connection, and a visible Chromium window that stays open. The
+dashboard only stores what the runner reports and sends the phone push.
+
 ---
 
 ## Alerts

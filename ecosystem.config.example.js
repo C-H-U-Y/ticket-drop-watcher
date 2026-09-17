@@ -12,6 +12,24 @@
 //   pm2 delete tm-watch && pm2 start ecosystem.config.js && pm2 save
 //
 // Verify by the "Poll ~Ns" banner in the logs, never by absence of an error.
+//
+// MANAGED MODE (monitor created on the Seat watch dashboard). The dashboard
+// holds EVENT_ID, QTYS, POLL_MS and NTFY_TOPIC, so none of the env block below
+// is needed. Replace the app entry with this one, pasting the id and token the
+// dashboard shows. The runner still runs here, on your own machine, in a
+// visible Chromium window; the dashboard only records what it reports.
+//
+//   {
+//     name: 'tm-watch',
+//     script: 'src/tm-watch.js',
+//     args: '--monitor ID --token TOKEN --api https://boilerplate.archie-huybers.workers.dev',
+//     cwd: __dirname,
+//     autorestart: true,
+//     restart_delay: 20000,
+//     max_restarts: 100,
+//     min_uptime: 60000,
+//     merge_logs: true,
+//   },
 
 module.exports = {
   apps: [
