@@ -4,6 +4,7 @@
 [![Workflow guide](https://img.shields.io/badge/docs-Claude%20workflow-555)](docs/CLAUDE_WORKFLOW.md)
 [![Pitfalls](https://img.shields.io/badge/docs-pitfalls-c0392b)](docs/PITFALLS.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Seat watch dashboard](https://img.shields.io/badge/dashboard-Seat%20watch-0f7a43)](https://seatwatch.archie-huybers.workers.dev)
 
 **How to enable your Claude Code to catch silently-released seats on sold-out Ticketmaster events, and notify you to go buy the ticket**
 
@@ -17,6 +18,51 @@ allocations released, abandoned carts timing out, payments failing. They reappea
 no "notify me". If you are not looking at the page in that exact three-minute window, you never knew it happened.
 
 This repo makes Claude watch for you.
+
+### Don't want to run it yourself? [Seat watch](https://seatwatch.archie-huybers.workers.dev) is the hosted version
+
+**[seatwatch.archie-huybers.workers.dev](https://seatwatch.archie-huybers.workers.dev)** —
+the demo account needs no password.
+
+Same watching, none of the setup: monitors with full history, every window and every poll
+recorded, email and phone alerts, and accounts so more than one person can watch more than
+one event. Built on 17 September 2026 at the **Claude Fable 5.1 Build Day/Night in Sydney,
+hosted at MongoDB**, one of [Claude Community's global Build Days](https://claude.com/community).
+This repo is what I brought to it. The site is what came out.
+
+**This repo remains the self-hosted option, and it is not a lesser one.** It has no
+database, no accounts and no dependency on that site: it emails you directly and always
+has. If you would rather own the whole thing, everything you need is below. If you would
+rather not, use the site. Starting this watcher with `--monitor` and `--token` makes it
+report to the site as well; leave those off and nothing here changes.
+
+The site also adds two more ways to run the same watch, for people without a terminal:
+
+| Runner | Where it runs | Watches Ticketmaster |
+|---|---|---|
+| **This repo** | Your terminal, driving a real Chromium | Yes, with the fullest seat detail |
+| Chrome extension | Inside a Ticketmaster tab you already have open | Yes, no terminal needed |
+| Browser tab | A Web Worker in the site itself | **No.** See below |
+
+That last row is the constraint this repo exists because of. A web page cannot read
+Ticketmaster: it sends no `Access-Control-Allow-Origin` header, so the browser refuses to
+hand the response body to any page that is not Ticketmaster's own, whatever address the
+request came from. A server cannot either, because datacenter addresses get `403`. The
+read only works from inside a real `ticketmaster.com.au` page, which is exactly what
+Playwright buys you here.
+
+---|---|---|
+| This repo | A terminal, driving a real Chromium | Yes, with the fullest seat detail |
+| [Chrome extension](https://github.com/C-H-U-Y/seatwatch/tree/main/extension) | Inside a Ticketmaster tab you already have open | Yes, no terminal needed |
+| Browser tab | A Web Worker in the dashboard itself | **No.** See below |
+
+That last row is the interesting constraint, and it is why this repo exists at all: a web
+page cannot read Ticketmaster. Ticketmaster sends no `Access-Control-Allow-Origin` header,
+so the browser refuses to hand the response body to any page that is not Ticketmaster's
+own, whatever address the request came from. A server cannot do it either, because
+datacenter addresses get `403`. The only place the read works is inside a real
+`ticketmaster.com.au` page, which is what Playwright buys you here and what the
+extension's content script buys you there.
 
 ---
 
