@@ -71,6 +71,11 @@ extension's content script buys you there.
 **Sydney Swans v Fremantle Dockers — AFL Preliminary Final, SCG, Fri 18 Sep 2026.**
 General sale sold out on Monday 14 Sep at 3:00pm.
 
+<img src="docs/swans-scg.jpg" width="380" alt="In the stand at the SCG for the preliminary final">
+
+*The seat this caught, two days later. It opened at 10:38 on 16 September, one of
+seventeen windows across three days, and was bought by hand four minutes after the alert.*
+
 ### What that looks like in practice
 
 One morning, from the monitor's own logs:
