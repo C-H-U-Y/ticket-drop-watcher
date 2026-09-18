@@ -1,7 +1,13 @@
 /**
  * control.js - the runner's link to the Seat watch control plane.
  *
- * The dashboard at https://boilerplate.archie-huybers.workers.dev/watch creates
+ * OPTIONAL. Nothing in tm-watch.js touches this module unless it is started
+ * with --monitor and --token. There are no database credentials anywhere on
+ * the runner: this posts JSON over HTTPS with a per-monitor token, and the
+ * dashboard's MongoDB connection string stays a secret on its server.
+ * See docs/DASHBOARD.md.
+ *
+ * The dashboard at https://seatwatch.archie-huybers.workers.dev/dashboard creates
  * a monitor and hands out a monitor id and a runner token. This module posts
  * to its one endpoint, POST {api}/api/pulse, in three flavours:
  *
@@ -20,7 +26,7 @@
  * must never stop the browser from checking Ticketmaster.
  */
 
-const DEFAULT_API = 'https://boilerplate.archie-huybers.workers.dev';
+const DEFAULT_API = 'https://seatwatch.archie-huybers.workers.dev';
 
 class Inactive extends Error {}
 class Rejected extends Error {}

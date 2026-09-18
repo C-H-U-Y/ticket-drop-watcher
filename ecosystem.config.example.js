@@ -22,7 +22,7 @@
 //   {
 //     name: 'tm-watch',
 //     script: 'src/tm-watch.js',
-//     args: '--monitor ID --token TOKEN --api https://boilerplate.archie-huybers.workers.dev',
+//     args: '--monitor ID --token TOKEN --api https://seatwatch.archie-huybers.workers.dev',
 //     cwd: __dirname,
 //     autorestart: true,
 //     restart_delay: 20000,

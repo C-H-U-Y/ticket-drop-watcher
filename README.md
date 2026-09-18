@@ -142,12 +142,12 @@ only the AU site has been tested.
 ## Run it from the Seat watch dashboard
 
 The env vars above are one way to configure a run. The other is to create the
-monitor at <https://boilerplate.archie-huybers.workers.dev/watch>, which holds
+monitor at <https://seatwatch.archie-huybers.workers.dev/dashboard>, which holds
 the event, quantities, poll interval and ntfy topic for you, and copy the
 command it shows:
 
 ```bash
-node src/tm-watch.js --monitor <id> --token <token> --api https://boilerplate.archie-huybers.workers.dev
+node src/tm-watch.js --monitor <id> --token <token> --api https://seatwatch.archie-huybers.workers.dev
 ```
 
 The runner fetches its config from the dashboard, then reports every poll
@@ -161,6 +161,29 @@ effect the next time the runner is reactivated.
 Nothing about where the polling happens changes: it is still your own machine,
 your own connection, and a visible Chromium window that stays open. The
 dashboard only stores what the runner reports and sends the phone push.
+
+### The dashboard is a separate project
+
+Seat watch is one implementation of the three-verb protocol in `src/control.js`
+(`hello`, `start`, `pulse`, plus `bye`), not a dependency of this runner. This
+repo works entirely on its own with env vars, and `control.js` is only loaded
+when `--monitor` and `--token` are passed.
+
+Source: <https://github.com/C-H-U-Y/seatwatch>. It also ships two other runners
+against the same endpoint, which are worth knowing about because they bound
+what is possible:
+
+- **A Web Worker in a browser tab.** Real runner, real schedule, real database
+  writes. It cannot poll Ticketmaster, and no page can: Ticketmaster sends no
+  `Access-Control-Allow-Origin` header, so a browser refuses to hand the
+  response body to any page that is not Ticketmaster's own, whatever address
+  the request left from. It watches CORS-enabled endpoints instead.
+- **A Chrome extension** whose content script runs inside a real
+  ticketmaster.com.au tab, which is the same same-origin trick this runner gets
+  from Playwright, without a terminal. Less seat detail, no install of Node.
+
+This runner remains the one with the fullest reading, and the only one that
+works with no browser tab open at all.
 
 ---
 
