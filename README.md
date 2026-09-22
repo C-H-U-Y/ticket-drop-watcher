@@ -41,7 +41,7 @@ The site also adds two more ways to run the same watch, for people without a ter
 | Runner | Where it runs | Watches Ticketmaster |
 |---|---|---|
 | **This repo** | Your terminal, driving a real Chromium | Yes, with the fullest seat detail |
-| Chrome extension | Inside a Ticketmaster tab you already have open | Yes, no terminal needed |
+| [Chrome extension](https://github.com/C-H-U-Y/seatwatch/tree/main/extension) | Inside a Ticketmaster tab you already have open | Yes, no terminal needed |
 | Browser tab | A Web Worker in the site itself | **No.** See below |
 
 That last row is the constraint this repo exists because of. A web page cannot read
@@ -49,20 +49,7 @@ Ticketmaster: it sends no `Access-Control-Allow-Origin` header, so the browser r
 hand the response body to any page that is not Ticketmaster's own, whatever address the
 request came from. A server cannot either, because datacenter addresses get `403`. The
 read only works from inside a real `ticketmaster.com.au` page, which is exactly what
-Playwright buys you here.
-
----|---|---|
-| This repo | A terminal, driving a real Chromium | Yes, with the fullest seat detail |
-| [Chrome extension](https://github.com/C-H-U-Y/seatwatch/tree/main/extension) | Inside a Ticketmaster tab you already have open | Yes, no terminal needed |
-| Browser tab | A Web Worker in the dashboard itself | **No.** See below |
-
-That last row is the interesting constraint, and it is why this repo exists at all: a web
-page cannot read Ticketmaster. Ticketmaster sends no `Access-Control-Allow-Origin` header,
-so the browser refuses to hand the response body to any page that is not Ticketmaster's
-own, whatever address the request came from. A server cannot do it either, because
-datacenter addresses get `403`. The only place the read works is inside a real
-`ticketmaster.com.au` page, which is what Playwright buys you here and what the
-extension's content script buys you there.
+Playwright buys you here and what the extension's content script buys you there.
 
 ---
 
